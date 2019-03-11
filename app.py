@@ -21,13 +21,15 @@ def train(train_dir, model_save_path=None, n_neighbors=None, knn_algo='ball_tree
         # Loop through each training image for the current person
         for img_path in image_files_in_folder(os.path.join(train_dir, class_dir)):
             image = face_recognition.load_image_file(img_path)
-            face_bounding_boxes = face_recognition.face_locations(image)
+            face_bounding_boxes = face_recognition.face_locations(image, model="cnn",
+                                                                  number_of_times_to_upsample=0)
 
             if len(face_bounding_boxes) != 1:
                 # If there are no people (or too many people) in a training image, skip the image.
                 if verbose:
                     print("Image {} not suitable for training: {}"
-                          .format(img_path, "Didn't find a face" if len(face_bounding_boxes) < 1 else "Found more than one face"))
+                          .format(img_path,
+                                  "Didn't find a face" if len(face_bounding_boxes) < 1 else "Found more than one face"))
             else:
                 # Add face encoding for current image to the training set
                 X.append(face_recognition.face_encodings(image, known_face_locations=face_bounding_boxes)[0])
@@ -80,12 +82,12 @@ def predict(x_face_locations, faces_encodings, knn_clf=None, model_path=None, di
 
     # Predict classes and remove classifications that aren't within the threshold
     return [(pred, loc) if rec else ("unknown", loc) for pred, loc, rec in zip(knn_clf.predict(faces_encodings),
-                                                                            x_face_locations, are_matches)]
+                                                                               x_face_locations, are_matches)]
 
 
 @app.route('/train', methods=['GET'])
 def train():
-    train("./Employee", model_save_path="test_model_2.clf")
+    train("./employee", model_save_path="test_model_2.clf")
     # print("Training complete!")
     return jsonify({'message': 'Success'})
 
@@ -140,32 +142,32 @@ def process():
 
                             if name == "unknown":
                                 # Draw rectangle
-                                print(
-                                    " - A face is located at pixel location Top: {}, Left: {}, Bottom: {}, "
-                                    "Right: {}".format(
-                                        top, left, bottom, right))
+                                # print(
+                                #     " - A face is located at pixel location Top: {}, Left: {}, Bottom: {}, "
+                                #     "Right: {}".format(
+                                #         top, left, bottom, right))
 
                                 # Draw a label with a name below the face
-                                # cv2.rectangle(frame_draw_img, (left, bottom - 25), (right, bottom), (0, 0, 255), cv2.FILLED)
                                 cv2.rectangle(frame_draw_img, (left, top), (right, bottom), (0, 255, 0), 2)
                                 font = cv2.FONT_HERSHEY_DUPLEX
-                                cv2.putText(frame_draw_img, "Not Black List", (left + 6, bottom - 6), font, 0.5, (255, 255, 255), 1)
+                                cv2.putText(frame_draw_img, "Not Black List", (left + 6, bottom - 6),
+                                            font, 0.5, (255, 255, 255), 1)
                             else:
                                 # Draw rectangle
-                                # cv2.rectangle(frame_draw_img, (left, top), (right, bottom), (0, 0, 255), 2)
-                                print(
-                                    " - A face is located at pixel location Top: {}, Left: {}, Bottom: {}, "
-                                    "Right: {}".format(
-                                        top, left, bottom, right))
+                                # print(
+                                #     " - A face is located at pixel location Top: {}, Left: {}, Bottom: {}, "
+                                #     "Right: {}".format(
+                                #         top, left, bottom, right))
 
                                 # Draw a label with a name below the face
                                 cv2.rectangle(frame_draw_img, (left, bottom - 25), (right, bottom), (0, 0, 255),
                                               cv2.FILLED)
                                 font = cv2.FONT_HERSHEY_DUPLEX
-                                cv2.putText(frame_draw_img, 'Black List', (left + 6, bottom - 6), font, 0.5, (255, 255, 255), 1)
-                                cv2.putText(frame_draw_img, name, (left + 6, bottom - 18), font, 0.5, (255, 255, 255), 1)
+                                cv2.putText(frame_draw_img, 'Black List', (left + 6, bottom - 6),
+                                            font, 0.5, (255, 255, 255), 1)
+                                cv2.putText(frame_draw_img, name, (left + 6, bottom - 18),
+                                            font, 0.5, (255, 255, 255), 1)
 
-                        # cv2.imwrite("images/angle/"+str(frame_number)+".png", frame_draw_img)
                         output_movie.write(frame_draw_img)
 
                 # Clear the frames array to start the next batch
