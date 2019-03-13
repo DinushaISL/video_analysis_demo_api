@@ -53,7 +53,7 @@ def train(train_dir, model_save_path=None, n_neighbors=None, knn_algo='ball_tree
     return knn_clf
 
 
-def predict(x_face_locations, faces_encodings, knn_clf=None, model_path=None, distance_threshold=0.4):
+def predict(x_face_locations, faces_encodings, knn_clf=None, model_path=None, distance_threshold=0.5):
 
     # if not os.path.isfile(X_img_path) or os.path.splitext(X_img_path)[1][1:] not in ALLOWED_EXTENSIONS:
     #     raise Exception("Invalid image path: {}".format(X_img_path))
@@ -86,7 +86,7 @@ def predict(x_face_locations, faces_encodings, knn_clf=None, model_path=None, di
 
 
 @app.route('/train', methods=['GET'])
-def train():
+def train_data():
     train("./employee", model_save_path="test_model_2.clf")
     # print("Training complete!")
     return jsonify({'message': 'Success'})
@@ -105,7 +105,7 @@ def process():
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         # fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         file_name = str(file).replace('.mp4', '')
-        output_movie = cv2.VideoWriter('./results/'+str(file_name)+'.avi', fourcc, 5, (int(video_capture.get(3)),
+        output_movie = cv2.VideoWriter('./results/'+str(file_name)+'.avi', fourcc, 15, (int(video_capture.get(3)),
                                                                            int(video_capture.get(4))))
         while output_movie.isOpened():
 
@@ -118,8 +118,8 @@ def process():
             frame_draw.append(frame)
             frame_count = frame_count + 1
 
-            if frame_count == 100:
-                break
+            # if frame_count == 100:
+            #     break
 
             if len(frames) == 4:
                 batch_of_face_locations = face_recognition.batch_face_locations(frames, number_of_times_to_upsample=0,
@@ -148,10 +148,10 @@ def process():
                                 #         top, left, bottom, right))
 
                                 # Draw a label with a name below the face
-                                cv2.rectangle(frame_draw_img, (left, top), (right, bottom), (0, 255, 0), 2)
+                                #cv2.rectangle(frame_draw_img, (left, top), (right, bottom), (0, 255, 0), 2)
                                 font = cv2.FONT_HERSHEY_DUPLEX
-                                cv2.putText(frame_draw_img, "Not Black List", (left + 6, bottom - 6),
-                                            font, 0.5, (255, 255, 255), 1)
+                                #cv2.putText(frame_draw_img, "Not Black List", (left + 6, bottom - 6),
+                                #            font, 0.5, (255, 255, 255), 1)
                             else:
                                 # Draw rectangle
                                 # print(
@@ -160,13 +160,12 @@ def process():
                                 #         top, left, bottom, right))
 
                                 # Draw a label with a name below the face
-                                cv2.rectangle(frame_draw_img, (left, bottom - 25), (right, bottom), (0, 0, 255),
-                                              cv2.FILLED)
+                                cv2.rectangle(frame_draw_img, (left, top), (right, bottom), (0, 0, 255), 3)
                                 font = cv2.FONT_HERSHEY_DUPLEX
-                                cv2.putText(frame_draw_img, 'Black List', (left + 6, bottom - 6),
-                                            font, 0.5, (255, 255, 255), 1)
-                                cv2.putText(frame_draw_img, name, (left + 6, bottom - 18),
-                                            font, 0.5, (255, 255, 255), 1)
+                                # cv2.putText(frame_draw_img, 'Black List', (left + 6, bottom - 6),
+                                #             font, 0.5, (255, 255, 255), 1)
+                                cv2.putText(frame_draw_img, name, (left + 6, bottom - 6),
+                                            font, 0.75, (255, 255, 255), 2)
 
                         output_movie.write(frame_draw_img)
 
