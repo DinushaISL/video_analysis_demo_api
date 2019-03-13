@@ -105,8 +105,8 @@ def process():
         fourcc = cv2.VideoWriter_fourcc(*'XVID')
         # fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         file_name = str(file).replace('.mp4', '')
-        output_movie = cv2.VideoWriter('./results/'+str(file_name)+'.avi', fourcc, 15, (int(video_capture.get(3)),
-                                                                           int(video_capture.get(4))))
+        output_movie = cv2.VideoWriter('./results/'+str(file_name)+'.avi', fourcc,
+                                       15, (int(video_capture.get(3)), int(video_capture.get(4))))
         while output_movie.isOpened():
 
             ret, frame = video_capture.read()
@@ -118,8 +118,8 @@ def process():
             frame_draw.append(frame)
             frame_count = frame_count + 1
 
-            # if frame_count == 100:
-            #     break
+            if frame_count == 300:
+                break
 
             if len(frames) == 4:
                 batch_of_face_locations = face_recognition.batch_face_locations(frames, number_of_times_to_upsample=0,
@@ -130,8 +130,7 @@ def process():
                     number_of_faces_in_frame = len(face_locations)
 
                     frame_number = frame_count - 4 + frame_number_in_batch
-                    print(frame_number_in_batch)
-                    print("I found {} face(s) in frame #{}.".format(number_of_faces_in_frame, frame_number))
+                    print("found {} face(s) in frame #{}.".format(number_of_faces_in_frame, frame_number))
                     if face_locations:
                         frame_draw_img = frame_draw[frame_number]
                         face_encodings = face_recognition.face_encodings(frame_draw_img, face_locations,
@@ -141,33 +140,25 @@ def process():
                         for name, (top, right, bottom, left) in predictions:
 
                             if name == "unknown":
+                                continue
                                 # Draw rectangle
-                                # print(
-                                #     " - A face is located at pixel location Top: {}, Left: {}, Bottom: {}, "
-                                #     "Right: {}".format(
-                                #         top, left, bottom, right))
-
+                                # cv2.rectangle(frame_draw_img, (left, top), (right, bottom), (0, 255, 0), 2)
                                 # Draw a label with a name below the face
-                                #cv2.rectangle(frame_draw_img, (left, top), (right, bottom), (0, 255, 0), 2)
-                                font = cv2.FONT_HERSHEY_DUPLEX
-                                #cv2.putText(frame_draw_img, "Not Black List", (left + 6, bottom - 6),
-                                #            font, 0.5, (255, 255, 255), 1)
+                                # font = cv2.FONT_HERSHEY_DUPLEX
+                                # cv2.putText(frame_draw_img, "Not Black List", (left + 6, bottom - 6),
+                                #             font, 0.5, (255, 255, 255), 1)
                             else:
                                 # Draw rectangle
-                                # print(
-                                #     " - A face is located at pixel location Top: {}, Left: {}, Bottom: {}, "
-                                #     "Right: {}".format(
-                                #         top, left, bottom, right))
-
-                                # Draw a label with a name below the face
                                 cv2.rectangle(frame_draw_img, (left, top), (right, bottom), (0, 0, 255), 3)
+                                # Draw a label with a name below the face
                                 font = cv2.FONT_HERSHEY_DUPLEX
-                                # cv2.putText(frame_draw_img, 'Black List', (left + 6, bottom - 6),
-                                #             font, 0.5, (255, 255, 255), 1)
                                 cv2.putText(frame_draw_img, name, (left + 6, bottom - 6),
                                             font, 0.75, (255, 255, 255), 2)
 
                         output_movie.write(frame_draw_img)
+
+                    else:
+                        output_movie.write(frame)
 
                 # Clear the frames array to start the next batch
                 frames = []
